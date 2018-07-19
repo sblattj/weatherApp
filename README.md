@@ -25,8 +25,6 @@ Things you may want to cover:
 
 # Weather
 
-## Set up Rails
-
 ## Clone Repo
 
 ```
