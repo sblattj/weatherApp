@@ -8,6 +8,9 @@
 <p id="minTemp"></p>
 
 <script>
+function ktof(f) { //convert kelvin to farenheight and round the result
+  return Math.round(f*(9/5) - 459.67);
+}
 function getWeather(address) {
   var latLng = new XMLHttpRequest();
   var weather = new XMLHttpRequest();  
@@ -28,7 +31,7 @@ function getWeather(address) {
   weather.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var temp = JSON.parse(this.response);
-      var faren = Math.round(temp.main.temp*(9/5) - 459.67) //convert kelvin to farenheight and round the result
+      var faren = ktof(temp.main.temp);
       var highTemp = Math.round(temp.main.temp_max*(9/5) - 459.67)
       var lowTemp = Math.round(temp.main.temp_min*(9/5) - 459.67)
       console.log(temp);
