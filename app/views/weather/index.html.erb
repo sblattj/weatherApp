@@ -1,0 +1,56 @@
+<h1>Type in address to get weather</h1>
+<input type="text" id="address" placeholder="Address">
+<%# <input type="submit" value="submit"> %>
+<button onclick="getWeather(address)">Submit</button>
+<%# <button>Submit</button> %>
+
+<p id="latLng"></p>
+<p id="weather"></p>
+
+<script>
+function getWeather(address) {
+  var latLng = new XMLHttpRequest();
+  var weather = new XMLHttpRequest();  
+  var lat;
+  var lng;                                                                                                            
+  latLng.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var getLatLng = JSON.parse(this.response);
+      lat = getLatLng.results["0"].geometry.location.lat;
+      lng = getLatLng.results["0"].geometry.location.lng;
+      weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lng+"&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+      weather.send();
+      // 2712 pepperwood pl hayward ca 94541
+    }
+    document.getElementById("latLng").innerHTML = 'lat/lng: ' +
+     lat + ' ' + lng;
+
+
+  };
+  weather.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      // var temp = JSON.parse(this.response);
+      // var faren = temp.wind.deg*(9/5) - 459.67 //convert kelvin to farenheight
+      // console.log(temp.wind.deg);
+      // document.getElementById("weather").innerHTML = "Curr Temp F: " + faren
+      //  + ""
+    }
+  };
+  latLng.open("GET", "https://maps.googleapis.com/maps/api/geocode/json?address="+address.value+"&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", true);
+  latLng.send();
+}
+// $(document).ready(function(){
+//     $("button").click(
+//         function getWeather(address){
+//         $.get("https://maps.googleapis.com/maps/api/geocode/json?address={address}&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", function(data, status){
+//             alert("Data: " + data + "\nStatus: " + status);
+//         });
+//     });
+// });
+</script>
+
+
+<%# http://api.openweathermap.org/data/2.5/weather?lat=34&lon=-120&appid=76ade0ae036d6f228f2c660d2a2680c9 %>
+
+<%# https://maps.googleapis.com/maps/api/geocode/json? %>
+<%# address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0" %>
