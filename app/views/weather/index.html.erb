@@ -1,11 +1,11 @@
 <h1>Type in address to get weather</h1>
 <input type="text" id="address" placeholder="Address">
-<%# <input type="submit" value="submit"> %>
 <button onclick="getWeather(address)">Submit</button>
-<%# <button>Submit</button> %>
 
 <p id="latLng"></p>
-<p id="weather"></p>
+<p id="currTemp"></p>
+<p id="maxTemp"></p>
+<p id="minTemp"></p>
 
 <script>
 function getWeather(address) {
@@ -24,33 +24,20 @@ function getWeather(address) {
     }
     document.getElementById("latLng").innerHTML = 'lat/lng: ' +
      lat + ' ' + lng;
-
-
   };
   weather.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      // var temp = JSON.parse(this.response);
-      // var faren = temp.wind.deg*(9/5) - 459.67 //convert kelvin to farenheight
-      // console.log(temp.wind.deg);
-      // document.getElementById("weather").innerHTML = "Curr Temp F: " + faren
-      //  + ""
+      var temp = JSON.parse(this.response);
+      var faren = Math.round(temp.main.temp*(9/5) - 459.67) //convert kelvin to farenheight and round the result
+      var highTemp = Math.round(temp.main.temp_max*(9/5) - 459.67)
+      var lowTemp = Math.round(temp.main.temp_min*(9/5) - 459.67)
+      console.log(temp);
+      document.getElementById("currTemp").innerHTML = "Curr Temp: " + faren + " F";
+      document.getElementById("maxTemp").innerHTML = "High Temp: " + highTemp + " F";
+      document.getElementById("minTemp").innerHTML = "Low Temp: " + lowTemp + " F";
     }
   };
   latLng.open("GET", "https://maps.googleapis.com/maps/api/geocode/json?address="+address.value+"&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", true);
   latLng.send();
 }
-// $(document).ready(function(){
-//     $("button").click(
-//         function getWeather(address){
-//         $.get("https://maps.googleapis.com/maps/api/geocode/json?address={address}&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", function(data, status){
-//             alert("Data: " + data + "\nStatus: " + status);
-//         });
-//     });
-// });
 </script>
-
-
-<%# http://api.openweathermap.org/data/2.5/weather?lat=34&lon=-120&appid=76ade0ae036d6f228f2c660d2a2680c9 %>
-
-<%# https://maps.googleapis.com/maps/api/geocode/json? %>
-<%# address=1600+Amphitheatre+Parkway,+Mountain+View,+CA&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0" %>
