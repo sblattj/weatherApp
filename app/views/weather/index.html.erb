@@ -1,4 +1,4 @@
-<h1>Type in address to get weather</h1>
+<h1>Type in US address to get weather</h1>
 <input type="text" id="address" placeholder="Address">
 <button onclick="getWeather(address)">Submit</button>
 
@@ -7,51 +7,95 @@
 <p id="next24"></p>
 <p id="next48"></p>
 <p id="next72"></p>
+<p id="cached"></p>
 
 <script>
+//global vars
+var timestamp = Math.round(new Date().getTime() / 1000); // Get time in minutes
+var getLatLng;
+
+var foreObj;
+var temp;
+var next24;
+var next48;
+var next72;
+
+var cacheFlag = 0;
+
+function getCachedWeather() {
+  temp = JSON.parse(localStorage.getItem("temp"));
+  foreObj = JSON.parse(localStorage.getItem("foreObj"));
+  next24 = foreObj.list[16];
+  next48 = foreObj.list[24];
+  next72 = foreObj.list[32];
+  cacheFlag = 1;
+  displayData();
+}
+
+function displayData() {
+      document.getElementById("city").innerHTML = "City: " + temp.name;
+      document.getElementById("today").innerHTML = "Now - Temperature: " + temp.main.temp + " F " + " - " + temp.weather["0"].description
+       + " - Humidity: " + temp.main.humidity + "% - Wind: " + temp.wind.speed + "mph - High/Low: " + temp.main.temp_max
+        + " F/" + temp.main.temp_min + " F";
+      document.getElementById("next24").innerHTML = "Next 24 Hours - Temperature: " + next24.main.temp + " F " + " - " + next24.weather["0"].description
+       + " - Humidity: " + next24.main.humidity + "% - Wind: " + next24.wind.speed + "mph";
+      document.getElementById("next48").innerHTML = "Next 48 Hours - Temperature: " + next48.main.temp + " F " + " - " + next48.weather["0"].description
+       + " - Humidity: " + next48.main.humidity + "% - Wind: " + next48.wind.speed + "mph";
+      document.getElementById("next72").innerHTML = "Next 72 Hours - Temperature: " + next72.main.temp + " F " + " - " + next72.weather["0"].description
+       + " - Humidity: " + next72.main.humidity + "% - Wind: " + next72.wind.speed + "mph";
+       if (cacheFlag == 1) {
+         document.getElementById("cached").innerHTML = "Fetched from Cached Data";
+       } else {
+         document.getElementById("cached").innerHTML = "";
+       }
+}
+
 function getWeather(address) {
+  localStorage.setItem("timestamp", new Date().getTime() / 1000);
   var latLng = new XMLHttpRequest();
   var weather = new XMLHttpRequest();
   var forecast = new XMLHttpRequest();
   var lat;
-  var lng;                                                                                                            
+  var lng;                                                                                                           
   latLng.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      var getLatLng = JSON.parse(this.response);
-      console.log(getLatLng);
+
+      getLatLng = JSON.parse(this.response);
       lat = getLatLng.results["0"].geometry.location.lat;
       lng = getLatLng.results["0"].geometry.location.lng;
-      // if (getLatLng.results["0"].address_components[6].long_name != undefined) {
-      //   zip = getLatLng.results["0"].address_components[6].long_name;
-      // }
-      weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lng+"&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
-      weather.send();
-      forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?lat="+lat+"&lon="+lng+"&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
-      forecast.send();
+      formAddr = getLatLng.results["0"].formatted_address;
+      zip = formAddr.match(/\d{5}/g);
+      zip = parseInt(zip, 10);
+      if ((localStorage.getItem(zip) == zip) && (localStorage.getItem("timestamp") - timestamp <= 1800)) {
+        getCachedWeather();
+      } else {
+        cacheFlag = 0;
+        localStorage.setItem(zip, zip);
+        weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+        weather.send();
+        forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+        forecast.send();
+      }
       // 2712 pepperwood pl hayward ca 94541
     }
   };
   forecast.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      var foreObj = JSON.parse(this.response);
-      // console.log(foreObj);
-      var next24 = foreObj.list[8];
-      var next48 = foreObj.list[16];
-      var next72 = foreObj.list[24];
-      // console.log(next48);
+      foreObj = JSON.parse(this.response);
+      localStorage.setItem("foreObj", this.response);
+      next24 = foreObj.list[16];
+      next48 = foreObj.list[24];
+      next72 = foreObj.list[32];
+      displayData();
     }
   }
   weather.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
-      var temp = JSON.parse(this.response);
-      console.log(temp);
-      document.getElementById("city").innerHTML = "City: " + temp.name;
-      document.getElementById("today").innerHTML = "Today - Temperature: " + temp.main.temp + " F " + " - " + temp.weather["0"].description
-       + " - Humidity: " + temp.main.humidity + "% - Wind: " + temp.wind.deg + " Deg " + temp.wind.speed + " Speed - High/Low: " + temp.main.temp_max
-        + "/" + temp.main.temp_min;
+      temp = JSON.parse(this.response);
+      localStorage.setItem("temp", this.response);
     }
   };
   latLng.open("GET", "https://maps.googleapis.com/maps/api/geocode/json?address="+address.value+"&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", true);
-  latLng.send();
+  latLng.send(); 
 }
 </script>
