@@ -23,8 +23,8 @@ var next72;
 var cacheFlag = 0;
 
 function getCachedWeather() {
-  temp = JSON.parse(localStorage.getItem("temp"));
-  foreObj = JSON.parse(localStorage.getItem("foreObj"));
+  temp = JSON.parse(localStorage.getItem("temp" + zip));
+  foreObj = JSON.parse(localStorage.getItem("foreObj" + zip));
   next24 = foreObj.list[16];
   next48 = foreObj.list[24];
   next72 = foreObj.list[32];
@@ -82,7 +82,7 @@ function getWeather(address) {
   forecast.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       foreObj = JSON.parse(this.response);
-      localStorage.setItem("foreObj", this.response);
+      localStorage.setItem("foreObj" + zip, this.response);
       next24 = foreObj.list[16];
       next48 = foreObj.list[24];
       next72 = foreObj.list[32];
@@ -92,7 +92,7 @@ function getWeather(address) {
   weather.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       temp = JSON.parse(this.response);
-      localStorage.setItem("temp", this.response);
+      localStorage.setItem("temp" + zip, this.response);
     }
   };
   latLng.open("GET", "https://maps.googleapis.com/maps/api/geocode/json?address="+address.value+"&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", true);
