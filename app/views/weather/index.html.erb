@@ -69,17 +69,23 @@ function getWeather(address) {
         lat = getLatLng.results["0"].geometry.location.lat;
         lng = getLatLng.results["0"].geometry.location.lng;
         formAddr = getLatLng.results["0"].formatted_address;
+        console.log(getLatLng);
         zip = formAddr.match(/\d{5}/g);
         zip = parseInt(zip, 10);
-        if ((localStorage.getItem(zip) == zip) && (localStorage.getItem("timestamp") - timestamp <= 1800)) {
-          getCachedWeather();
+        if (zip) {
+          if ((localStorage.getItem(zip) == zip) && (localStorage.getItem("timestamp") - timestamp <= 1800)) {
+            getCachedWeather();
+          } else {
+            cacheFlag = 0;
+            localStorage.setItem(zip, zip);
+            weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+            weather.send();
+            forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+            forecast.send();
+          }
         } else {
-          cacheFlag = 0;
-          localStorage.setItem(zip, zip);
-          weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
-          weather.send();
-          forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
-          forecast.send();
+          document.getElementById("city").innerHTML = "Please include ZIP code";
+          document.getElementById("submitBtn").disabled = false;
         }
       } else {
         document.getElementById("city").innerHTML = "Error from Google API: " + getLatLng.status;
