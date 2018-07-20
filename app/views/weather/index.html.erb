@@ -1,6 +1,6 @@
 <h1>Type in US address to get weather</h1>
 <input type="text" id="address" placeholder="Address">
-<button onclick="getWeather(address)">Submit</button>
+<button onclick="getWeather(address)" id="submitBtn">Submit</button>
 
 <p id="city"></p>
 <p id="today"></p>
@@ -21,6 +21,8 @@ var next48;
 var next72;
 
 var cacheFlag = 0;
+
+var loading = false;
 
 function getCachedWeather() {
   temp = JSON.parse(localStorage.getItem("temp" + zip));
@@ -48,9 +50,11 @@ function displayData() {
        } else {
          document.getElementById("cached").innerHTML = "";
        }
+       document.getElementById("submitBtn").disabled = false;
 }
 
 function getWeather(address) {
+  document.getElementById("submitBtn").disabled = true;
   localStorage.setItem("timestamp", new Date().getTime() / 1000);
   var latLng = new XMLHttpRequest();
   var weather = new XMLHttpRequest();
@@ -61,22 +65,26 @@ function getWeather(address) {
     if (this.readyState == 4 && this.status == 200) {
 
       getLatLng = JSON.parse(this.response);
-      lat = getLatLng.results["0"].geometry.location.lat;
-      lng = getLatLng.results["0"].geometry.location.lng;
-      formAddr = getLatLng.results["0"].formatted_address;
-      zip = formAddr.match(/\d{5}/g);
-      zip = parseInt(zip, 10);
-      if ((localStorage.getItem(zip) == zip) && (localStorage.getItem("timestamp") - timestamp <= 1800)) {
-        getCachedWeather();
+      if (getLatLng.status == "OK") {
+        lat = getLatLng.results["0"].geometry.location.lat;
+        lng = getLatLng.results["0"].geometry.location.lng;
+        formAddr = getLatLng.results["0"].formatted_address;
+        zip = formAddr.match(/\d{5}/g);
+        zip = parseInt(zip, 10);
+        if ((localStorage.getItem(zip) == zip) && (localStorage.getItem("timestamp") - timestamp <= 1800)) {
+          getCachedWeather();
+        } else {
+          cacheFlag = 0;
+          localStorage.setItem(zip, zip);
+          weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+          weather.send();
+          forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+          forecast.send();
+        }
       } else {
-        cacheFlag = 0;
-        localStorage.setItem(zip, zip);
-        weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
-        weather.send();
-        forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?zip="+zip+",us&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
-        forecast.send();
+        document.getElementById("city").innerHTML = "Error from Google API: " + getLatLng.status;
+        document.getElementById("submitBtn").disabled = false;
       }
-      // 2712 pepperwood pl hayward ca 94541
     }
   };
   forecast.onreadystatechange = function() {
@@ -96,6 +104,6 @@ function getWeather(address) {
     }
   };
   latLng.open("GET", "https://maps.googleapis.com/maps/api/geocode/json?address="+address.value+"&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", true);
-  latLng.send(); 
+  latLng.send();
 }
 </script>
