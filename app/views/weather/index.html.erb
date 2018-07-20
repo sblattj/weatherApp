@@ -2,42 +2,53 @@
 <input type="text" id="address" placeholder="Address">
 <button onclick="getWeather(address)">Submit</button>
 
-<p id="latLng"></p>
-<p id="currTemp"></p>
-<p id="maxTemp"></p>
-<p id="minTemp"></p>
+<p id="city"></p>
+<p id="today"></p>
+<p id="next24"></p>
+<p id="next48"></p>
+<p id="next72"></p>
 
 <script>
-function ktof(f) { //convert kelvin to farenheight and round the result
-  return Math.round(f*(9/5) - 459.67);
-}
 function getWeather(address) {
   var latLng = new XMLHttpRequest();
-  var weather = new XMLHttpRequest();  
+  var weather = new XMLHttpRequest();
+  var forecast = new XMLHttpRequest();
   var lat;
   var lng;                                                                                                            
   latLng.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var getLatLng = JSON.parse(this.response);
+      console.log(getLatLng);
       lat = getLatLng.results["0"].geometry.location.lat;
       lng = getLatLng.results["0"].geometry.location.lng;
-      weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lng+"&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+      // if (getLatLng.results["0"].address_components[6].long_name != undefined) {
+      //   zip = getLatLng.results["0"].address_components[6].long_name;
+      // }
+      weather.open("GET", "http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lng+"&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
       weather.send();
+      forecast.open("GET", "http://api.openweathermap.org/data/2.5/forecast?lat="+lat+"&lon="+lng+"&units=imperial&appid=76ade0ae036d6f228f2c660d2a2680c9", true);
+      forecast.send();
       // 2712 pepperwood pl hayward ca 94541
     }
-    document.getElementById("latLng").innerHTML = 'lat/lng: ' +
-     lat + ' ' + lng;
   };
+  forecast.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var foreObj = JSON.parse(this.response);
+      // console.log(foreObj);
+      var next24 = foreObj.list[8];
+      var next48 = foreObj.list[16];
+      var next72 = foreObj.list[24];
+      // console.log(next48);
+    }
+  }
   weather.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var temp = JSON.parse(this.response);
-      var faren = ktof(temp.main.temp);
-      var highTemp = Math.round(temp.main.temp_max*(9/5) - 459.67)
-      var lowTemp = Math.round(temp.main.temp_min*(9/5) - 459.67)
       console.log(temp);
-      document.getElementById("currTemp").innerHTML = "Curr Temp: " + faren + " F";
-      document.getElementById("maxTemp").innerHTML = "High Temp: " + highTemp + " F";
-      document.getElementById("minTemp").innerHTML = "Low Temp: " + lowTemp + " F";
+      document.getElementById("city").innerHTML = "City: " + temp.name;
+      document.getElementById("today").innerHTML = "Today - Temperature: " + temp.main.temp + " F " + " - " + temp.weather["0"].description
+       + " - Humidity: " + temp.main.humidity + "% - Wind: " + temp.wind.deg + " Deg " + temp.wind.speed + " Speed - High/Low: " + temp.main.temp_max
+        + "/" + temp.main.temp_min;
     }
   };
   latLng.open("GET", "https://maps.googleapis.com/maps/api/geocode/json?address="+address.value+"&key=AIzaSyCuh8W6rG3SyQr4vkSL51uKP1vM9Df0yQ0", true);
